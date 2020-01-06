@@ -21,8 +21,7 @@ public class CSVFileHandler {
         out.close();
     }
 
-    public Spis nacti() throws IOException {
-        Spis spis = new Spis();
+    public void nacti(Spis spis) throws IOException {
         BufferedReader input = new BufferedReader(new FileReader(fileName));
         String radek;
         while ((radek = input.readLine())!=null) {
@@ -34,6 +33,5 @@ public class CSVFileHandler {
             spis.zarad(d);
         }
         input.close();
-        return spis;
     }
 }

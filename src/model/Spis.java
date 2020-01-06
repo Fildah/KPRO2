@@ -21,7 +21,7 @@ public class Spis {
     public Dokument najdiDokument(String cj){
         Dokument dokument = dokumenty.get(0);
         for(int i = 0; i < velikostSpisu(); i++){
-            if (dokumenty.get(i).getCj() == cj) {
+            if (dokumenty.get(i).getCj().equals(cj)) {
                 dokument = dokumenty.get(i);
             }
         }
@@ -30,5 +30,9 @@ public class Spis {
 
     public Dokument najdiDokument(int i) {
         return dokumenty.get(i);
+    }
+
+    public void clear() {
+        dokumenty = new ArrayList<>();
     }
 }
