@@ -16,7 +16,7 @@ public class CSVFileHandler {
         PrintWriter out = new PrintWriter(fileName);
         for(int i = 0; i < spis.velikostSpisu(); i++){
             Dokument dokument = spis.najdiDokument(i);
-            out.printf("%s;%s;%s;%s\n", dokument.getCj(), dokument.getVec(), dokument.getDetail(), dokument.getAktivni());
+            out.printf("%s;%s;%s\n", dokument.getCj(), dokument.getVec(), dokument.getDetail());
         }
         out.close();
     }
@@ -27,9 +27,6 @@ public class CSVFileHandler {
         while ((radek = input.readLine())!=null) {
             String[] str = radek.split(";");
             Dokument d = new Dokument(str[0], str[1], str[2]);
-            if (str[3].equals("false")){
-                d.setAktivni(false);
-            }
             spis.zarad(d);
         }
         input.close();

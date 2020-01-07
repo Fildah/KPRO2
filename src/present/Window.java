@@ -28,9 +28,6 @@ public class Window extends JFrame {
 
 
     public Window() {
-        table.setAutoCreateRowSorter(true);
-        table.setRowSorter(sorter);
-
         this.setVisible(true);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setTitle("ESSL Light");
@@ -58,17 +55,9 @@ public class Window extends JFrame {
         menuBar.add(menuDokument);
 
         JMenu menuHledani = new JMenu("Hledání");
-        JMenuItem polozkaVyhledatVec = new JMenuItem("Vyhledat ve věci");
-        polozkaVyhledatVec.addActionListener(e -> akceDokumentVyhledatVec());
-        JMenuItem polozkaVyhledatDetail = new JMenuItem("Vyhledat v detailu");
-        polozkaVyhledatDetail.addActionListener(e -> akceDokumentVyhledatDetail());
         menuHledani.add(actionFind);
         menuHledani.addSeparator();
-        menuHledani.add(polozkaVyhledatVec);
-        menuHledani.addSeparator();
-        menuHledani.add(polozkaVyhledatDetail);
-        menuHledani.addSeparator();
-        // menuHledani.add(polozkaVse);
+        menuHledani.add(actionClearFilter);
         menuBar.add(menuHledani);
 
         this.setJMenuBar(menuBar);
@@ -81,12 +70,17 @@ public class Window extends JFrame {
         toolBar.add(actionOpen);
         toolBar.add(actionSave);
         toolBar.addSeparator();
+        toolBar.add(actionCreate);
+        toolBar.add(actionEdit);
+        toolBar.add(actionDelete);
         toolBar.addSeparator();
         toolBar.add(actionFind);
+        toolBar.add(actionClearFilter);
         toolBar.addSeparator();
         this.add(toolBar, "North");
 
         table.setAutoCreateRowSorter(true);
+        table.setRowSorter(sorter);
         this.add(new JScrollPane(table), BorderLayout.CENTER);
 
         this.pack();
@@ -166,6 +160,15 @@ public class Window extends JFrame {
         actionFind.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('F', InputEvent.CTRL_MASK ));
         actionFind.putValue(Action.SHORT_DESCRIPTION,"Vyhledání vybraného/ných záznamu/ů");
 
+        actionClearFilter = new AbstractAction("Zruš filtr", new ImageIcon(getClass().getResource("/icons/clearFind.png"))) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                odeberFiltr();
+            }
+        };
+        actionClearFilter.putValue(Action.ACCELERATOR_KEY,KeyStroke.getKeyStroke('X', InputEvent.CTRL_MASK ));
+        actionClearFilter.putValue(Action.SHORT_DESCRIPTION,"Zrušení vytvořených filtrů");
+
     }
 
     private void nactiSoubor(){
@@ -209,34 +212,40 @@ public class Window extends JFrame {
     }
 
     private void hledej(){
-        String hledany = JOptionPane.showInputDialog("Zadej hledané číslo jednací");
-        System.out.println(hledany);
+        String hledany = JOptionPane.showInputDialog("Zadej hledaný výraz (hledání je case sensitive):");
         RowFilter<SpisModel, Object> rf;
+        sorter = (TableRowSorter<SpisModel>) table.getRowSorter();
         //If current expression doesn't parse, don't update.
         try {
-            rf = RowFilter.regexFilter(hledany, 0);
+            rf = RowFilter.regexFilter(hledany);
         } catch (java.util.regex.PatternSyntaxException e) {
             return;
         }
         sorter.setRowFilter(rf);
     }
 
-    private void akceDokumentVyhledatVec(){
-        String hledany = JOptionPane.showInputDialog("Zadej hledanou věc");
-        // vyhledat(hledany, 1);
-    }
-
-    private void akceDokumentVyhledatDetail(){
-        String hledany = JOptionPane.showInputDialog("Zadej hledaný detail");
-        //  vyhledat(hledany, 2);
+    private void odeberFiltr(){
+        RowFilter<SpisModel, Object> rf;
+        sorter = (TableRowSorter<SpisModel>) table.getRowSorter();
+        //If current expression doesn't parse, don't update.
+        try {
+            rf = RowFilter.regexFilter("");
+        } catch (java.util.regex.PatternSyntaxException e) {
+            return;
+        }
+        sorter.setRowFilter(rf);
     }
 
     private void vytvorDokument(){
         String vec = JOptionPane.showInputDialog("Zadej věc dokumentu");
-        String detail = JOptionPane.showInputDialog("Zadej detail dokumentu");
-        Dokument d = new Dokument(cisloJednaci.getCj(), vec, detail);
-        spis.zarad(d);
-        model.refresh();
+        if (vec != null) {
+            String detail = JOptionPane.showInputDialog("Zadej detail dokumentu");
+            if (detail != null) {
+                Dokument d = new Dokument(cisloJednaci.getCj(), vec, detail);
+                spis.zarad(d);
+                model.refresh();
+            }
+        }
     }
 
     private void upravDokument(){
@@ -244,18 +253,22 @@ public class Window extends JFrame {
             JOptionPane.showMessageDialog(this, "Není vybrán žádný řádek", "Varování", JOptionPane.WARNING_MESSAGE);
         } else {
             String vec = JOptionPane.showInputDialog("Zadej novou věc dokumentu");
-            String detail = JOptionPane.showInputDialog("Zadej nový detail dokumentu");
-            spis.najdiDokument(table.getValueAt(table.getSelectedRow(), 0).toString()).setVec(vec);
-            spis.najdiDokument(table.getValueAt(table.getSelectedRow(), 0).toString()).setDetail(detail);
+            if (vec != null) {
+                String detail = JOptionPane.showInputDialog("Zadej nový detail dokumentu");
+                if (detail != null) {
+                    spis.najdiDokument(table.getValueAt(table.getSelectedRow(), 0).toString()).setVec(vec);
+                    spis.najdiDokument(table.getValueAt(table.getSelectedRow(), 0).toString()).setDetail(detail);
+                    model.refresh();
+                }
+            }
         }
-        model.refresh();
     }
 
     private void smazDokument(){
         if (table.getSelectedRow() == -1){
             JOptionPane.showMessageDialog(this, "Není vybrán žádný řádek", "Varování", JOptionPane.WARNING_MESSAGE);
         } else {
-            spis.odeber(table.getValueAt(table.getSelectedRow(), 0).toString());
+            spis.odeber(table.convertRowIndexToModel(table.getSelectedRow()));
         }
         model.refresh();
     }

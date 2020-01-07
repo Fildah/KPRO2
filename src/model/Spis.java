@@ -10,8 +10,8 @@ public class Spis {
         dokumenty.add(dokument);
     }
 
-    public void odeber(String cj){
-        najdiDokument(cj).setAktivni(false);
+    public void odeber(int index){
+        dokumenty.remove(index);
     }
 
     public int velikostSpisu(){
